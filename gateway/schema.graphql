@@ -1,0 +1,58 @@
+scalar JSON
+
+type Product {
+  id: ID!
+  sku: String!
+  name: String!
+}
+
+type BOMItem {
+  componentId: ID!
+  qtyPerUnit: Float!
+}
+
+type ManufacturingOrder {
+  id: ID!
+  moNumber: String!
+  productId: ID!
+  product: Product
+  quantity: Int!
+  status: String!
+  bomSnapshot: JSON
+}
+
+type WorkOrder {
+  id: ID!
+  moId: ID!
+  status: String!
+}
+
+type Inventory {
+  productId: ID!
+  qtyAvailable: Float!
+  qtyReserved: Float!
+}
+
+type Query {
+  manufacturingOrders(status: String, limit: Int): [ManufacturingOrder!]!
+  product(id: ID!): Product
+  inventory(productId: ID!): Inventory
+}
+
+input CreateMOInput {
+  productId: ID!
+  quantity: Int!
+}
+
+type Mutation {
+  createManufacturingOrder(input: CreateMOInput!): ManufacturingOrder!
+  confirmManufacturingOrder(id: ID!): ManufacturingOrder!
+  startWorkOrder(id: ID!): WorkOrder!
+  completeWorkOrder(id: ID!): WorkOrder!
+  reserveStock(productId: ID!, qty: Float!): Inventory!
+}
+
+type Subscription {
+  workOrderUpdated: WorkOrder!
+  inventoryUpdated: Inventory!
+}
