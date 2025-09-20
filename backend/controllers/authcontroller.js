@@ -73,6 +73,10 @@ exports.login = async (req, res) => {
 
 // FORGOT PASSWORD
 exports.forgotPassword = async (req, res) => {
+  // --- DEBUGGING LINE ADDED HERE ---
+  console.log("Backend received forgot password request with body:", req.body);
+  // ------------------------------------
+  
   const { email } = req.body;
   try {
     const userResult = await pool.query("SELECT * FROM users WHERE email = $1", [email]);

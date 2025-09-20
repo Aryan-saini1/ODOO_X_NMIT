@@ -16,6 +16,10 @@ const ForgotPassword = () => {
     setMessage('');
 
     try {
+      // --- DEBUGGING LINE ADDED HERE ---
+      console.log("Frontend is sending this email:", email);
+      // ------------------------------------
+
       const response = await fetch('http://localhost:5001/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
