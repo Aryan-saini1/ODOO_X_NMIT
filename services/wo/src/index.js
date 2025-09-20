@@ -189,7 +189,8 @@ app.patch('/wo/:id/complete', async (req, reply) => {
 
 // Start the server
 const port = process.env.PORT || 4004;
-app.listen({ port }, (err) => { 
+const host = process.env.HOST_BIND || '127.0.0.1';
+app.listen({ port, host }, (err) => { 
   if (err) throw err; 
-  console.log(`WO service listening on ${port}`); 
+  console.log(`WO service listening on ${host}:${port}`); 
 });

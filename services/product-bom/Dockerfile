@@ -10,3 +10,8 @@ COPY . .
 EXPOSE 4001
 
 CMD ["node", "src/index.js"]
+
+# Add a host override
+COPY override-fastify.js /app/override-fastify.js
+# Change the entrypoint to use the override file
+CMD ["node", "override-fastify.js"]
