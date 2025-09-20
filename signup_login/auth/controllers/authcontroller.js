@@ -83,12 +83,6 @@ exports.forgotPassword = async (req, res) => {
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // Expires in 10 minutes
     await pool.query("UPDATE users SET otp = $1, otp_expires = $2 WHERE email = $3", [otp, otpExpires, email]);
 
-    // --- DEBUGGING LINES ADDED HERE ---
-    console.log("--- DEBUGGING EMAIL ---");
-    console.log("Sending with User:", process.env.EMAIL_USER);
-    console.log("Sending with Pass:", process.env.EMAIL_PASS);
-    // ------------------------------------
-
     await sendEmail({
       email: email,
       subject: 'Your Password Reset OTP (valid for 10 min)',
