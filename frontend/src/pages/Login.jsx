@@ -26,9 +26,14 @@ const Login = () => {
         throw new Error(data.message || 'Failed to log in.');
       }
       
+      // On successful login:
       localStorage.setItem('token', data.token);
       setMessage('Login successful! Redirecting...');
-      // navigate('/dashboard'); // Uncomment this to redirect after login
+      
+      // Use a short delay before navigating to the dashboard
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000); // 1-second delay
       
     } catch (error) {
       setIsError(true);
