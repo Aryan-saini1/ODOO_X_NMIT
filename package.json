@@ -33,9 +33,10 @@
     "express": "^5.1.0",
     "graphql": "^16.11.0",
     "graphql-subscriptions": "^3.0.0",
-    "graphql-ws": "^6.0.6",
+    "graphql-ws": "^5.16.0",
     "jsonwebtoken": "^9.0.2",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.16.3",
     "ws": "^8.18.3"
   },
   "devDependencies": {
