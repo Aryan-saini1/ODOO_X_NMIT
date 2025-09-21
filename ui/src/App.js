@@ -19,7 +19,7 @@ export default function App() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 font-sans">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-8 text-gray-800">Manufacturing & Inventory Management</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <FeatureButton
             title="Manufacturing Order"
             onClick={() => openPopup('manufacturing')}
@@ -31,6 +31,11 @@ export default function App() {
             color="bg-green-500"
           />
           <FeatureButton
+            title="Work Orders"
+            onClick={() => openPopup('workorders')}
+            color="bg-orange-500"
+          />
+          <FeatureButton
             title="Stock Ledger"
             onClick={() => openPopup('stock')}
             color="bg-indigo-500"
@@ -40,6 +45,7 @@ export default function App() {
 
       {activePopup === 'manufacturing' && <ManufacturingOrderPopup isOpen={true} onClose={closePopup} />}
       {activePopup === 'workcenter' && <WorkCenterPopup onClose={closePopup} />}
+      {activePopup === 'workorders' && <WorkOrdersPopup onClose={closePopup} />}
       {activePopup === 'stock' && <StockLedgerPopup onClose={closePopup} />}
     </div>
   );
@@ -708,6 +714,278 @@ function StockLedgerPopup({ onClose }) {
   );
 }
 
+
+// --- WorkOrders Components ---
+
+// --- SVG Icon Components ---
+const SearchIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
+
+const FilterIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+    </svg>
+);
+
+const ToggleIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-gray-700">
+        <rect x="4" y="4" width="6" height="6" rx="1"></rect>
+        <rect x="4" y="14" width="6" height="6" rx="1"></rect>
+        <rect x="14" y="4" width="6" height="6" rx="1"></rect>
+        <rect x="14" y="14" width="6" height="6" rx="1"></rect>
+    </svg>
+);
+
+const PlayIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M8 5v14l11-7z"></path>
+    </svg>
+);
+
+const PauseIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
+    </svg>
+);
+
+const CheckIcon = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"></path>
+    </svg>
+);
+
+// --- Initial Data ---
+const initialWorkOrders = [
+  // Status: Running. Started 15 minutes ago for demo purposes.
+  { id: 1, operation: 'Assembly', workCenter: 'WC-1', finishedProduct: 'Product A', expectedDuration: '8 hrs', status: 'Running', startTime: Date.now() - 15 * 60 * 1000, accumulatedTime: 0 },
+  // Status: Complete. Took exactly 4 hours.
+  { id: 2, operation: 'Painting', workCenter: 'WC-2', finishedProduct: 'Product B', expectedDuration: '4 hrs', status: 'Complete', startTime: null, accumulatedTime: 4 * 60 * 60 * 1000 },
+  // Status: Paused. Ran for 1 hour before being paused.
+  { id: 3, operation: 'Painting', workCenter: 'WC-1', finishedProduct: 'Product A', expectedDuration: '4 hrs', status: 'Paused', startTime: null, accumulatedTime: 1 * 60 * 60 * 1000 },
+   // Status: Complete. Took 1 hr 55 mins.
+  { id: 4, operation: 'Testing', workCenter: '1-1', finishedProduct: 'Product C', expectedDuration: '2 hr', status: 'Complete', startTime: null, accumulatedTime: 1 * 60 * 60 * 1000 + 55 * 60 * 1000 },
+  // Status: Pending. Has not started.
+  { id: 5, operation: 'Packaging', workCenter: '1-1', finishedProduct: 'Product B', expectedDuration: '30 mins', status: 'Pending', startTime: null, accumulatedTime: 0 },
+  // Status: Pending. Has not started.
+  { id: 6, operation: 'Assembly D', workCenter: 'WC-3', finishedProduct: 'Product D', expectedDuration: '12 hrs', status: 'Pending', startTime: null, accumulatedTime: 0 },
+];
+
+// --- Status Indicator Component ---
+const StatusIndicator = ({ status, onStatusChange }) => {
+    const statusConfig = {
+        Running: {
+            icon: <PlayIcon className="text-green-500" />,
+            text: 'Running',
+            color: 'text-green-700',
+            bg: 'bg-green-100',
+            actionText: 'Pause'
+        },
+        Complete: {
+            icon: <CheckIcon className="text-gray-500" />,
+            text: 'Complete',
+            color: 'text-gray-700',
+            bg: 'bg-gray-200',
+            actionText: null
+        },
+        Paused: {
+            icon: <PauseIcon className="text-red-500" />,
+            text: 'Paused',
+            color: 'text-red-700',
+            bg: 'bg-red-100',
+            actionText: 'Resume'
+        },
+        Pending: {
+            icon: <PlayIcon className="text-blue-500" />,
+            text: 'Pending',
+            color: 'text-blue-700',
+            bg: 'bg-blue-100',
+            actionText: 'Start'
+        },
+    };
+
+    const current = statusConfig[status];
+
+    return (
+        <div className="flex items-center justify-start space-x-2">
+            <button 
+                onClick={onStatusChange} 
+                disabled={!current.actionText}
+                className="flex items-center justify-center p-1 rounded-full disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                aria-label={current.actionText || status}
+            >
+                {current.icon}
+            </button>
+            <span className={`${current.color}`}>{current.text}</span>
+        </div>
+    );
+};
+
+// --- WorkOrders Popup Component ---
+const WorkOrdersPopup = ({ onClose }) => {
+    const [workOrders, setWorkOrders] = useState(initialWorkOrders);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [, setTime] = useState(Date.now()); // State to trigger re-renders for the timer
+
+    // Effect to update the timer every second for running tasks
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTime(Date.now());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const handleStatusChange = (id) => {
+        const now = Date.now();
+        setWorkOrders(prevOrders =>
+            prevOrders.map(order => {
+                if (order.id === id) {
+                    const updatedOrder = { ...order };
+                    let newStatus = order.status;
+
+                    switch (order.status) {
+                        case 'Pending':
+                            newStatus = 'Running';
+                            updatedOrder.startTime = now;
+                            break;
+                        case 'Running':
+                            newStatus = 'Paused';
+                            // Add elapsed time to accumulated time
+                            if (order.startTime) {
+                                updatedOrder.accumulatedTime += (now - order.startTime);
+                            }
+                            updatedOrder.startTime = null;
+                            break;
+                        case 'Paused':
+                            newStatus = 'Running';
+                            updatedOrder.startTime = now;
+                            break;
+                        default:
+                            // No change for 'Complete' status
+                            return order;
+                    }
+                    updatedOrder.status = newStatus;
+                    return updatedOrder;
+                }
+                return order;
+            })
+        );
+    };
+
+    const filteredWorkOrders = useMemo(() => {
+        return workOrders.filter(order => 
+            Object.values(order).some(value => 
+                String(value).toLowerCase().includes(searchTerm.toLowerCase())
+            )
+        );
+    }, [workOrders, searchTerm]);
+
+    // Helper to calculate the current real duration of a task
+    const calculateRealDuration = (order) => {
+        if (order.status === 'Running' && order.startTime) {
+            return order.accumulatedTime + (Date.now() - order.startTime);
+        }
+        return order.accumulatedTime;
+    };
+
+    // Helper to format milliseconds into a readable string
+    const formatDuration = (ms) => {
+        if (ms <= 0) return '-';
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const parts = [];
+        if (hours > 0) parts.push(`${hours}h`);
+        if (minutes > 0) parts.push(`${minutes}m`);
+        // Show seconds only if total time is less than a minute or it's not zero
+        if (totalSeconds < 60) parts.push(`${seconds}s`);
+        
+        return parts.join(' ') || '0s';
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-4 z-50 font-sans">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+                <div className="p-6">
+                    <h1 className="text-3xl font-bold text-center text-gray-800">Work Orders</h1>
+                </div>
+                
+                <div className="px-6 pb-4">
+                    <div className="flex items-center gap-4">
+                        <div className="relative flex-grow">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <SearchIcon />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search work orders..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-300"
+                            />
+                        </div>
+                        <div className="flex items-center gap-3">
+                           <button className="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                               <FilterIcon />
+                           </button>
+                           <button className="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                               <ToggleIcon />
+                           </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="overflow-y-auto px-6 pb-6">
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-[#F3E9DD]">
+                                <tr>
+                                    {['Operation', 'Work Center', 'Finished Product', 'Expected Duration', 'Real Duration', 'Status'].map(header => (
+                                        <th key={header} scope="col" className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                                            {header}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {filteredWorkOrders.map((order, index) => (
+                                    <tr key={order.id} className={index % 2 === 0 ? 'bg-[#FFFBF5]' : 'bg-white'}>
+                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{order.operation}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{order.workCenter}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">{order.finishedProduct}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{order.expectedDuration}</td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 font-medium">
+                                            {formatDuration(calculateRealDuration(order))}
+                                        </td>
+                                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                                            <StatusIndicator 
+                                                status={order.status} 
+                                                onStatusChange={() => handleStatusChange(order.id)} 
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                 {/* The footer can be added here if needed, or a close button */}
+                <div className="p-4 flex justify-end">
+                    <button onClick={onClose} className="px-6 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    );
+};
 
 // --- WorkCenter Components ---
 
