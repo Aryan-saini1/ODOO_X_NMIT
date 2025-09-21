@@ -6,8 +6,6 @@ require('dotenv').config();
  */
 const authMiddleware = (req, res, next) => {
     let token;
-
-    // Check for the standard 'Authorization' header
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             // Extract the token from the "Bearer <token>" string
@@ -17,6 +15,7 @@ const authMiddleware = (req, res, next) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // Attach the entire decoded payload to the request object.
+            // The payload contains { userId, role }.
             req.user = decoded;
 
             // Proceed to the protected route
@@ -34,4 +33,3 @@ const authMiddleware = (req, res, next) => {
 };
 
 module.exports = authMiddleware;
-

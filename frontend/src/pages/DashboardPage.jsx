@@ -101,44 +101,67 @@ const DashboardPage = () => {
         <div className="min-h-screen bg-[#FDFBF5] text-[#333] font-sans">
             <header className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border-b border-black/10 fixed top-0 left-0 right-0 z-10">
                 <button className="p-2"><MenuIcon /></button>
-                <div className="text-xl font-bold tracking-wider">O R D O</div>
+                <div className="text-xl font-bold tracking-wider">🛒O R D O</div>
                 <button className="p-2" onClick={handleLogout}><UserIcon /></button>
             </header>
 
             <main className="pt-24 px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-                    <h1 className="text-2xl font-semibold">Manufacturing Order</h1>
-                    <div className="relative w-full sm:w-auto">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><SearchIcon /></span>
-                        <input
-                            type="text"
-                            placeholder="search bar"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full sm:w-64 pl-10 pr-4 py-2 bg-white border border-black/20 rounded-full focus:ring-2 focus:ring-black focus:outline-none"
-                        />
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button className="px-4 py-2 border border-black/30 rounded-lg font-semibold bg-white/80 hover:bg-black/10 transition">New Manufacturing Order</button>
+                        <h1 className="text-2xl font-semibold ml-2">Manufacturing Order</h1>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button className="p-2 border border-black/20 rounded hover:bg-black/10"><svg width="20" height="20" fill="none" stroke="currentColor"><rect x="3" y="5" width="14" height="10" rx="2"/><line x1="3" y1="9" x2="17" y2="9"/></svg></button>
+                        <button className="p-2 border border-black/20 rounded hover:bg-black/10"><svg width="20" height="20" fill="none" stroke="currentColor"><rect x="4" y="4" width="5" height="5" rx="1"/><rect x="11" y="4" width="5" height="5" rx="1"/><rect x="4" y="11" width="5" height="5" rx="1"/><rect x="11" y="11" width="5" height="5" rx="1"/></svg></button>
+                        <div className="relative w-full sm:w-auto ml-2">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><SearchIcon /></span>
+                            <input
+                                type="text"
+                                placeholder="Search Bar"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full sm:w-64 pl-10 pr-4 py-2 bg-white border border-black/20 rounded-full focus:ring-2 focus:ring-black focus:outline-none"
+                            />
+                        </div>
                     </div>
                 </div>
 
-                <div className="space-y-4 mb-8">
-                    {['all', 'my'].map(scope => (
-                        <div key={scope}>
-                            <h2 className="text-lg font-bold uppercase mb-2">{scope.toUpperCase()}</h2>
-                            <div className="flex flex-wrap gap-2">
-                                {stats && stats[scope] && Object.entries(stats[scope]).map(([filterKey, count]) => (
-                                    <button
-                                        key={filterKey}
-                                        onClick={() => { setActiveScope(scope); setActiveFilter(filterKey); }}
-                                        className={`px-4 py-1.5 text-sm font-medium border rounded-full transition-colors duration-200 ${activeScope === scope && activeFilter === filterKey ? 'bg-black text-white border-black' : 'bg-white/50 border-black/20 hover:bg-black/5 hover:border-black/40'}`}
-                                    >
-                                        <span className="opacity-70 mr-1.5">&lt;&gt;</span>
-                                        {formatFilterKey(filterKey)}
-                                        <span className="ml-2 bg-black/10 text-black/60 text-xs font-bold px-1.5 py-0.5 rounded-full">{count}</span>
-                                    </button>
-                                ))}
-                            </div>
+                <div className="flex flex-col md:flex-row gap-8 mb-8">
+                    {/* All Section */}
+                    <div className="flex-1">
+                        <h2 className="text-lg font-bold uppercase mb-2">All</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {stats && stats.all && Object.entries(stats.all).map(([filterKey, count]) => (
+                                <button
+                                    key={filterKey}
+                                    onClick={() => { setActiveScope('all'); setActiveFilter(filterKey); }}
+                                    className={`px-4 py-1.5 text-sm font-medium border rounded-full transition-colors duration-200 ${activeScope === 'all' && activeFilter === filterKey ? 'bg-black text-white border-black' : 'bg-white/50 border-black/20 hover:bg-black/5 hover:border-black/40'}`}
+                                >
+                                    <span className="opacity-70 mr-1.5">&lt;&gt;</span>
+                                    {formatFilterKey(filterKey)}
+                                    <span className="ml-2 bg-black/10 text-black/60 text-xs font-bold px-1.5 py-0.5 rounded-full">{count}</span>
+                                </button>
+                            ))}
                         </div>
-                    ))}
+                    </div>
+                    {/* My Section */}
+                    <div className="flex-1">
+                        <h2 className="text-lg font-bold uppercase mb-2">My</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {stats && stats.my && Object.entries(stats.my).map(([filterKey, count]) => (
+                                <button
+                                    key={filterKey}
+                                    onClick={() => { setActiveScope('my'); setActiveFilter(filterKey); }}
+                                    className={`px-4 py-1.5 text-sm font-medium border rounded-full transition-colors duration-200 ${activeScope === 'my' && activeFilter === filterKey ? 'bg-black text-white border-black' : 'bg-white/50 border-black/20 hover:bg-black/5 hover:border-black/40'}`}
+                                >
+                                    <span className="opacity-70 mr-1.5">&lt;&gt;</span>
+                                    {formatFilterKey(filterKey)}
+                                    <span className="ml-2 bg-black/10 text-black/60 text-xs font-bold px-1.5 py-0.5 rounded-full">{count}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-black/10 overflow-x-auto">
@@ -146,7 +169,7 @@ const DashboardPage = () => {
                         <thead className="border-b border-black/10">
                             <tr>
                                 <th className="p-3"><input type="checkbox" className="rounded-sm border-gray-400" /></th>
-                                {['reference', 'start date', 'finalised product', 'component status', 'quantity', 'unit', 'state'].map(header => (
+                                {["Reference", "Start Date", "Finished Product", "Component Status", "Quantity", "Unit", "State"].map(header => (
                                     <th key={header} className="p-3 font-semibold uppercase tracking-wider">{header}</th>
                                 ))}
                             </tr>
