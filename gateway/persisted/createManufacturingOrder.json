@@ -1,0 +1,11 @@
+{
+  "query": "mutation CreateManufacturingOrder($input: CreateMOInput!) { createManufacturingOrder(input: $input) { id moNumber productId product { id sku name } quantity status bomSnapshot } }",
+  "variables": {
+    "input": {
+      "productId": "PROD-001",
+      "quantity": 100
+    }
+  },
+  "description": "Create a new manufacturing order",
+  "allowedRoles": ["admin", "manager"]
+}

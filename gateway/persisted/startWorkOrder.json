@@ -1,0 +1,8 @@
+{
+  "query": "mutation StartWorkOrder($id: ID!) { startWorkOrder(id: $id) { id moId status } }",
+  "variables": {
+    "id": "WO-001"
+  },
+  "description": "Start a work order",
+  "allowedRoles": ["admin", "manager", "operator"]
+}
