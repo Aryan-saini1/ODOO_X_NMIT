@@ -1,0 +1,8 @@
+{
+  "query": "query GetInventory($productId: ID!) { inventory(productId: $productId) { productId qtyAvailable qtyReserved } }",
+  "variables": {
+    "productId": "PROD-001"
+  },
+  "description": "Get inventory status for a product",
+  "allowedRoles": ["admin", "manager", "operator", "viewer"]
+}

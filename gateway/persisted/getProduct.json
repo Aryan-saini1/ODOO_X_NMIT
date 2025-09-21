@@ -1,0 +1,8 @@
+{
+  "query": "query GetProduct($id: ID!) { product(id: $id) { id sku name } }",
+  "variables": {
+    "id": "PROD-001"
+  },
+  "description": "Get product details by ID",
+  "allowedRoles": ["admin", "manager", "operator", "viewer"]
+}

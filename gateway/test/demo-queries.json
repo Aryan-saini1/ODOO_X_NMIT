@@ -1,0 +1,12 @@
+{
+  "createMO": "mutation { createManufacturingOrder(input:{productId:\"1\",quantity:10}) { id moNumber } }",
+  "confirmMO": "mutation { confirmManufacturingOrder(id:\"MO-001\") { id moNumber status } }",
+  "startWO": "mutation { startWorkOrder(id:\"WO-001\") { id moId status } }",
+  "completeWO": "mutation { completeWorkOrder(id:\"WO-001\") { id moId status } }",
+  "getMO": "query { manufacturingOrders { id moNumber status } }",
+  "getProduct": "query { product(id:\"1\") { id sku name } }",
+  "getInventory": "query { inventory(productId:\"1\") { productId qtyAvailable qtyReserved } }",
+  "reserveStock": "mutation { reserveStock(productId:\"1\", qty:5.0) { productId qtyAvailable qtyReserved } }",
+  "subscribeWO": "subscription { workOrderUpdated { id moId status } }",
+  "subscribeInventory": "subscription { inventoryUpdated { productId qtyAvailable qtyReserved } }"
+}

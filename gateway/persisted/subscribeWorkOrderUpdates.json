@@ -1,0 +1,6 @@
+{
+  "query": "subscription WorkOrderUpdates { workOrderUpdated { id moId status } }",
+  "variables": {},
+  "description": "Subscribe to work order updates",
+  "allowedRoles": ["admin", "manager", "operator", "viewer"]
+}

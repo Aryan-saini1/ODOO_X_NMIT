@@ -1,0 +1,9 @@
+{
+  "query": "query GetManufacturingOrders($status: String, $limit: Int) { manufacturingOrders(status: $status, limit: $limit) { id moNumber productId product { id sku name } quantity status bomSnapshot } }",
+  "variables": {
+    "status": "pending",
+    "limit": 10
+  },
+  "description": "Get manufacturing orders with optional status filter and limit",
+  "allowedRoles": ["admin", "manager", "operator"]
+}

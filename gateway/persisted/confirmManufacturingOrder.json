@@ -1,0 +1,8 @@
+{
+  "query": "mutation ConfirmManufacturingOrder($id: ID!) { confirmManufacturingOrder(id: $id) { id moNumber productId product { id sku name } quantity status bomSnapshot } }",
+  "variables": {
+    "id": "MO-001"
+  },
+  "description": "Confirm a manufacturing order",
+  "allowedRoles": ["admin", "manager"]
+}

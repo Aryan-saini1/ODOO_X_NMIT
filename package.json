@@ -1,0 +1,47 @@
+{
+  "name": "odoo_x_nmit",
+  "version": "1.0.0",
+  "description": "Modular manufacturing management application that enables businesses to create, track, and manage their end-to-end production process digitally.The platform aims to replace fragmented spreadsheets and manual tracking with a centralized, user-friendly platform.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --config gateway/test/jest.config.js --testPathPatterns='(simple|demoQueries|working).test.js'",
+    "test:watch": "jest --config gateway/test/jest.config.js --watch --testPathPatterns='(simple|demoQueries|working).test.js'",
+    "test:coverage": "jest --config gateway/test/jest.config.js --coverage --testPathPatterns='(simple|demoQueries|working).test.js'",
+    "test:demo": "jest --config gateway/test/jest.config.js demoQueries.test.js",
+    "test:simple": "jest --config gateway/test/jest.config.js simple.test.js",
+    "test:working": "jest --config gateway/test/jest.config.js working.test.js",
+    "test:all": "jest --config gateway/test/jest.config.js --testPathPatterns='(simple|demoQueries|working).test.js'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aryan-saini1/ODOO_X_NMIT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Aryan-saini1/ODOO_X_NMIT/issues"
+  },
+  "homepage": "https://github.com/Aryan-saini1/ODOO_X_NMIT#readme",
+  "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@graphql-tools/schema": "^10.0.25",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dataloader": "^2.2.3",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "graphql": "^16.11.0",
+    "graphql-subscriptions": "^3.0.0",
+    "graphql-ws": "^5.16.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.16.3",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.1.2",
+    "jest": "^30.1.3",
+    "supertest": "^7.1.4"
+  }
+}
