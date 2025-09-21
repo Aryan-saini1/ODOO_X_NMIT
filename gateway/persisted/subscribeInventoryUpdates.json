@@ -1,0 +1,6 @@
+{
+  "query": "subscription InventoryUpdates { inventoryUpdated { productId qtyAvailable qtyReserved } }",
+  "variables": {},
+  "description": "Subscribe to inventory updates",
+  "allowedRoles": ["admin", "manager", "operator", "viewer"]
+}
