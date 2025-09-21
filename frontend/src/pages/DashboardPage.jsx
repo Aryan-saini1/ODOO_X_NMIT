@@ -18,6 +18,12 @@ const SearchIcon = () => (
     </svg>
 );
 
+const CloseIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+);
+
 // --- API HELPER FUNCTION ---
 const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -58,6 +64,8 @@ const DashboardPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showMasterMenu, setShowMasterMenu] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
 
     useEffect(() => {
         const getDashboardData = async () => {
@@ -97,13 +105,100 @@ const DashboardPage = () => {
         }
     };
 
+    const masterMenuItems = [
+        { name: 'Manufacturing Orders', icon: '📋' },
+        { name: 'Work Orders', icon: '⚙️' },
+        { name: 'Bills of Materials', icon: '📄' },
+        { name: 'Work Centre', icon: '🏭' },
+        { name: 'Stock Ledger', icon: '📊' }
+    ];
+
+    const profileMenuItems = [
+        { name: 'My Profile', icon: '👤' },
+        { name: 'My Reports', icon: '📈' }
+    ];
+
     return (
         <div className="min-h-screen bg-[#FDFBF5] text-[#333] font-sans">
             <header className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border-b border-black/10 fixed top-0 left-0 right-0 z-10">
-                <button className="p-2"><MenuIcon /></button>
+                <button className="p-2" onClick={() => setShowMasterMenu(true)}><MenuIcon /></button>
                 <div className="text-xl font-bold tracking-wider">🛒O R D O</div>
-                <button className="p-2" onClick={handleLogout}><UserIcon /></button>
+                <button className="p-2" onClick={() => setShowProfileMenu(true)}><UserIcon /></button>
             </header>
+
+            {/* Master Menu Overlay */}
+            {showMasterMenu && (
+                <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowMasterMenu(false)}>
+                    <div 
+                        className="fixed left-0 top-0 h-full w-80 bg-[#C8A882] shadow-2xl transform transition-transform duration-300 ease-in-out"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-4 border-b border-black/20">
+                            <h2 className="text-xl font-bold text-black">master menu</h2>
+                            <button 
+                                onClick={() => setShowMasterMenu(false)}
+                                className="p-1 hover:bg-black/10 rounded"
+                            >
+                                <CloseIcon />
+                            </button>
+                        </div>
+                        <div className="py-2">
+                            {masterMenuItems.map((item, index) => (
+                                <button
+                                    key={index}
+                                    className="w-full px-6 py-4 text-left hover:bg-black/10 transition-colors border-b border-black/20 flex items-center gap-3"
+                                    onClick={() => {
+                                        console.log(`Navigating to ${item.name}`);
+                                        setShowMasterMenu(false);
+                                    }}
+                                >
+                                    <span className="text-lg">{item.icon}</span>
+                                    <span className="text-black font-medium">{item.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Profile Menu Overlay */}
+            {showProfileMenu && (
+                <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setShowProfileMenu(false)}>
+                    <div 
+                        className="fixed right-0 top-0 h-full w-80 bg-[#C8A882] shadow-2xl transform transition-transform duration-300 ease-in-out"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between p-4 border-b border-black/20">
+                            <h2 className="text-xl font-bold text-black">profile setup</h2>
+                            <button 
+                                onClick={() => setShowProfileMenu(false)}
+                                className="p-1 hover:bg-black/10 rounded"
+                            >
+                                <CloseIcon />
+                            </button>
+                        </div>
+                        <div className="py-2">
+                            {profileMenuItems.map((item, index) => (
+                                <button
+                                    key={index}
+                                    className="w-full px-6 py-4 text-left hover:bg-black/10 transition-colors border-b border-black/20 flex items-center gap-3"
+                                    onClick={() => {
+                                        if (item.name === 'My Profile') {
+                                            console.log('Opening My Profile');
+                                        } else if (item.name === 'My Reports') {
+                                            console.log('Opening My Reports');
+                                        }
+                                        setShowProfileMenu(false);
+                                    }}
+                                >
+                                    <span className="text-lg">{item.icon}</span>
+                                    <span className="text-black font-medium">{item.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <main className="pt-24 px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
