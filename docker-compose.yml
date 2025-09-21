@@ -1,16 +1,95 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15
     environment:
       POSTGRES_PASSWORD: postgres
-    ports: ["5432:5432"]
+    ports: ["5433:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   redis:
     image: redis:7
     ports: ["6379:6379"]
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports: ["5672:5672","15672:15672"]
+
+  db-init:
+    image: postgres:15
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/mo/migrations:/mo-migrations
+      - ./services/inventory/migrations:/inventory-migrations
+      - ./services/wo/migrations:/wo-migrations
+      - ./services/product-bom/migrations:/product-bom-migrations
+    command: >
+      bash -c "
+        psql postgresql://postgres:postgres@postgres:5432/postgres -c 'CREATE DATABASE product_bom_db;' &&
+        psql postgresql://postgres:postgres@postgres:5432/product_bom_db -f /product-bom-migrations/01_init.sql &&
+        psql postgresql://postgres:postgres@postgres:5432/postgres -c 'CREATE DATABASE modb;' &&
+        psql postgresql://postgres:postgres@postgres:5432/modb -f /mo-migrations/01_init.sql &&
+        psql postgresql://postgres:postgres@postgres:5432/postgres -c 'CREATE DATABASE inventorydb;' &&
+        psql postgresql://postgres:postgres@postgres:5432/inventorydb -f /inventory-migrations/01_init.sql &&
+        psql postgresql://postgres:postgres@postgres:5432/postgres -c 'CREATE DATABASE wodb;' &&
+        psql postgresql://postgres:postgres@postgres:5432/wodb -f /wo-migrations/01_init.sql
+      "
+
+  product-bom:
+    build:
+      context: ./services/product-bom
+      dockerfile: Dockerfile
+    ports: ["4001:4001"]
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/product_bom_db
+      - PORT=4001
+      - HOST_BIND=0.0.0.0
+    depends_on:
+      - postgres
+
+  mo-service:
+    build:
+      context: ./services/mo
+      dockerfile: Dockerfile
+    ports: ["4002:4002"]
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/modb
+      - PORT=4002
+      - HOST_BIND=0.0.0.0
+      - PRODUCT_SERVICE=http://product-bom:4001
+      - WO_SERVICE=http://wo-service:4004
+      - INVENTORY_SERVICE=http://inventory-service:4003
+    depends_on:
+      - postgres
+      - product-bom
+      - db-init
+
+  inventory-service:
+    build:
+      context: ./services/inventory
+      dockerfile: Dockerfile
+    ports: ["4003:4003"]
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/inventorydb
+      - PORT=4003
+      - HOST_BIND=0.0.0.0
+    depends_on:
+      - postgres
+      - db-init
+
+  wo-service:
+    build:
+      context: ./services/wo
+      dockerfile: Dockerfile
+    ports: ["4004:4004"]
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/wodb
+      - PORT=4004
+      - HOST_BIND=0.0.0.0
+    depends_on:
+      - postgres
+      - db-init
+
 volumes:
   pgdata:

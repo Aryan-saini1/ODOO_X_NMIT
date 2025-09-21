@@ -1,6 +1,5 @@
 const Fastify = require('fastify');
 const pool = require('./db');
-require('dotenv').config({ path: '../.env' });
 
 const app = Fastify({ 
   logger: true,
@@ -423,7 +422,8 @@ app.post('/stock/move', async (req, reply) => {
 
 // Start the server
 const port = process.env.PORT || 4003;
-app.listen({ port }, (err) => { 
+const host = process.env.HOST_BIND || '127.0.0.1';
+app.listen({ port, host }, (err) => { 
   if (err) throw err; 
-  console.log(`Inventory service listening on ${port}`); 
+  console.log(`Inventory service listening on ${host}:${port}`); 
 });
