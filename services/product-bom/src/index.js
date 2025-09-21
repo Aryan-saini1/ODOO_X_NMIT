@@ -1,4 +1,9 @@
-const fastify = require('fastify')({ logger: true });
+const crypto = require('crypto');
+const fastify = require('fastify')({
+  logger: true,
+  requestIdHeader: 'x-request-id',
+  genReqId: (req) => req.headers['x-request-id'] || crypto.randomUUID()
+});
 const db = require('./db');
 const formbody = require('@fastify/formbody');
 
@@ -11,6 +16,7 @@ fastify.post('/products', async (req, reply) => {
     'INSERT INTO products (sku,name,uom) VALUES ($1,$2,$3) RETURNING *',
     [sku, name, uom]
   );
+  fastify.log.info({ requestId: req.id, productId: r.rows[0].id }, 'Product created');
   reply.code(201).send(r.rows[0]);
 });
 
@@ -44,6 +50,7 @@ fastify.post('/boms', async (req, reply) => {
       );
     }
     await client.query('COMMIT');
+    fastify.log.info({ requestId: req.id, bomId }, 'BOM created');
     reply.code(201).send({ id: bomId });
   } catch (e) {
     await client.query('ROLLBACK');

@@ -1,7 +1,6 @@
 const Fastify = require('fastify');
 const fetch = require('node-fetch');
 const pool = require('./db');
-require('dotenv').config({ path: '../.env' });
 
 const app = Fastify({ 
   logger: true,
@@ -36,7 +35,6 @@ app.post('/mo', async (req, reply) => {
       
       if (existingMoResult.rows.length > 0) {
         const existingMo = existingMoResult.rows[0];
-        console.log(`MO create idempotency hit for key ${idempotencyKey}`);
         app.log.info({ requestId, idempotencyKey }, 'MO create idempotency hit');
         return reply.code(200).send({ ...existingMo, idempotent: true });
       }
@@ -94,7 +92,6 @@ app.post('/mo', async (req, reply) => {
         
         if (existingMoResult.rows.length > 0) {
           const existingMo = existingMoResult.rows[0];
-          console.log(`MO create idempotency hit for key ${idempotencyKey}`);
           app.log.info({ requestId, idempotencyKey }, 'MO create idempotency hit (after race condition)');
           return reply.code(200).send({ ...existingMo, idempotent: true });
         } else {
@@ -122,7 +119,6 @@ app.post('/mo', async (req, reply) => {
     await client.query('COMMIT');
     
     app.log.info({ requestId, moId: mo.id, moNumber: mo.mo_number }, 'Manufacturing order created');
-    console.log(`Created MO ${mo.mo_number} (id: ${mo.id})`);
     
     // After transaction, create WOs for each BOM item
     const woIds = [];
@@ -166,7 +162,7 @@ app.post('/mo', async (req, reply) => {
       );
       const outboxId = outboxResult.rows[0].id;
       await outboxClient.query('COMMIT');
-      console.log(`Created WOs: ${woIds.join(', ')} for MO ${mo.id}`);
+      app.log.info({ requestId, moId: mo.id }, `Created WOs: ${woIds.join(', ')}`);
       // Set outbox info for later verification
       mo.outbox_info = { outboxId, event_type: 'WOS_CREATED' };
     } catch (error) {
@@ -206,7 +202,6 @@ app.patch('/mo/:id/confirm', async (req, reply) => {
       
       if (existingResult.rows.length > 0) {
         const existingMo = existingResult.rows[0];
-        console.log(`MO confirm idempotency hit for key ${idempotencyKey}`);
         app.log.info({ requestId, idempotencyKey }, 'MO confirm idempotency hit');
         return reply.code(200).send({ ...existingMo, idempotent: true });
       }
@@ -309,7 +304,7 @@ app.patch('/mo/:id/block', async (req, reply) => {
     );
     
     await client.query('COMMIT');
-    console.log(`MO ${id} marked BLOCKED reason: ${reason || 'No reason provided'}`);
+    app.log.info({ requestId, moId: id, reason }, 'Manufacturing order blocked');
     
     return reply.send(mo);
     
@@ -363,7 +358,7 @@ app.patch('/mo/:id/unblock', async (req, reply) => {
     );
     
     await client.query('COMMIT');
-    console.log(`MO ${id} unblocked`);
+    app.log.info({ requestId, moId: id }, 'Manufacturing order unblocked');
     
     return reply.send(mo);
     
@@ -438,11 +433,11 @@ app.post('/mo/:id/retry-reservation', async (req, reply) => {
           
           if (!reserveResponse.ok) {
             allReservationsSuccessful = false;
-            console.log(`Reservation failed for component ${componentId} in MO ${mo.id}: ${reserveResult.error || 'Unknown error'}`);
+            app.log.warn({ requestId, moId: mo.id, componentId, error: reserveResult.error }, `Reservation failed for component ${componentId}`);
           }
         } catch (error) {
           allReservationsSuccessful = false;
-          console.log(`Error reserving component ${componentId} in MO ${mo.id}: ${error.message}`);
+          app.log.error({ requestId, moId: mo.id, componentId, error: error.message }, `Error reserving component ${componentId}`);
           reservationResults.push({ error: error.message });
         }
       }
@@ -472,7 +467,7 @@ app.post('/mo/:id/retry-reservation', async (req, reply) => {
       );
       
       await client.query('COMMIT');
-      console.log(`MO ${id} retry reservation result: success`);
+      app.log.info({ requestId, moId: id }, 'MO retry reservation successful');
       
       return reply.send({ 
         status: 'success',
@@ -506,7 +501,7 @@ app.post('/mo/:id/retry-reservation', async (req, reply) => {
       );
       
       await client.query('COMMIT');
-      console.log(`MO ${id} retry reservation result: failed`);
+      app.log.warn({ requestId, moId: id }, 'MO retry reservation failed');
       
       return reply.code(400).send({ 
         status: 'failed',
@@ -579,5 +574,5 @@ app.get('/outbox', async (req, reply) => {
 const port = process.env.PORT || 4002;
 app.listen({ port, host: '0.0.0.0' }, (err) => { 
   if (err) throw err; 
-  console.log(`MO service listening on ${port}`); 
+  app.log.info(`MO service listening on ${port}`); 
 });

@@ -1,6 +1,5 @@
 const Fastify = require('fastify');
 const pool = require('./db');
-require('dotenv').config({ path: '../.env' });
 
 const app = Fastify({ 
   logger: true,
@@ -38,6 +37,28 @@ app.post('/wo', async (req, reply) => {
     app.log.error({ requestId, error }, 'Error creating work order');
     return reply.code(500).send({ 
       error: 'Failed to create work order',
+      requestId 
+    });
+  }
+});
+
+// GET /wo/mo/:moId - Get all Work Orders for a given MO
+app.get('/wo/mo/:moId', async (req, reply) => {
+  const { moId } = req.params;
+  const requestId = req.headers['x-request-id'];
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM work_orders WHERE mo_id = $1 ORDER BY sequence',
+      [moId]
+    );
+    
+    return reply.send(result.rows);
+    
+  } catch (error) {
+    app.log.error({ requestId, error }, 'Error fetching work orders for MO');
+    return reply.code(500).send({ 
+      error: 'Failed to fetch work orders',
       requestId 
     });
   }

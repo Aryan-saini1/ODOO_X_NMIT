@@ -1,6 +1,5 @@
 const Fastify = require('fastify');
 const pool = require('./db');
-require('dotenv').config({ path: '../.env' });
 
 const app = Fastify({ 
   logger: true,
